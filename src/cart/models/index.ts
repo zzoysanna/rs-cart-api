@@ -7,11 +7,17 @@ export type Product = {
 
 
 export type CartItem = {
-  product: Product,
+  product?: Product,
   count: number,
+  productId?: string;
 }
 
 export type Cart = {
   id: string,
   items: CartItem[],
+}
+
+export enum CartStatus {
+  OPEN = 'OPEN',
+  ORDERED = 'ORDERED',
 }
