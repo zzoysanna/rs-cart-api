@@ -6,6 +6,7 @@ import { AppRequest, getUserIdFromRequest } from '../shared';
 
 import { calculateCartTotal } from './models-rules';
 import { CartService } from './services';
+import {CartEntity} from '../database/entities';
 
 @Controller('api/profile/cart')
 export class CartController {
@@ -71,17 +72,13 @@ export class CartController {
         message: 'Cart is empty',
       }
     }
-
-    const { id: cartId, items } = cart;
-    const total = calculateCartTotal(cart);
-    const order = this.orderService.create({
+    const newOrder = {
       ...body, // TODO: validate and pick only necessary data
-      userId,
-      cartId,
-      items,
-      total,
-    });
-    this.cartService.removeByUserId(userId);
+      userId: (cart as unknown as CartEntity).userId,
+      cartId: cart.id,
+    }
+    const order = await this.orderService.create(newOrder);
+    this.cartService.updateById(cart.id);
 
     return {
       statusCode: HttpStatus.OK,

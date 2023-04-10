@@ -1,11 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { v4 } from 'uuid';
 import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
 import { Connection, Repository } from 'typeorm';
 import {CartStatus } from '../models';
 import {Cart} from '../models';
-import {CartEntity} from '../../database/entities/cart.entity';
-import {CartItemEntity} from '../../database/entities/cart-item.entity';
+import {CartEntity, CartItemEntity} from '../../database/entities';
 
 @Injectable()
 export class CartService {
@@ -71,6 +69,16 @@ export class CartService {
       return this.findOrCreateByUserId(userId);
     } catch (e) {
       throw new Error(e.message)
+    }
+  }
+
+  async updateById(cartId: string): Promise<Partial<Cart>> {
+    try {
+      const cart = await this.cartsRepo.findOne({ id: cartId });
+      cart.status = CartStatus.ORDERED;
+      return this.cartsRepo.save(cart)
+    } catch (e) {
+      throw new Error(e.message);
     }
   }
 
