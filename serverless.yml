@@ -1,0 +1,30 @@
+service: cart-service
+
+plugins:
+  - serverless-offline
+  - serverless-dotenv-plugin
+
+useDotenv: true
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  region: eu-central-1
+
+  environment:
+    host: ${env:DATABASE_HOST}
+    port: ${env:DATABASE_PORT}
+    user: ${env:DATABASE_USERNAME}
+    password: ${env:DATABASE_PASSWORD}
+    database: ${env:DATABASE_NAME}
+
+functions:
+  main:
+    handler: dist/main.handler
+    events:
+      - http:
+          method: ANY
+          path: /
+      - http:
+          method: ANY
+          path: '{proxy+}'

@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-
-import * as helmet from 'helmet';
-
+import helmet from 'helmet';
 import { AppModule } from './app.module';
+import serverlessExpress from '@vendia/serverless-express';
+import { Callback, Context, Handler } from 'aws-lambda';
+import { Client } from 'pg';
+let server: Handler;
 
 const port = process.env.PORT || 4000;
 
@@ -14,8 +16,30 @@ async function bootstrap() {
   });
   app.use(helmet());
 
-  await app.listen(port);
+  await app.init();
+  const expressApp = app.getHttpAdapter().getInstance();
+  return serverlessExpress({ app: expressApp });
 }
-bootstrap().then(() => {
-  console.log('App is running on %s port', port);
-});
+
+export const handler: Handler = async (
+    event: any,
+    context: Context,
+    callback: Callback,
+) => {
+  try {
+    const {user, host, port, database, password} = process.env;
+    const client = new Client({
+      user,
+      host,
+      database,
+      password,
+      port,
+    });
+    await client.connect();
+  } catch (error) {
+    console.log('error while trying to connect to db:', error.message);
+  }
+  server = server ?? (await bootstrap());
+  return server(event, context, callback);
+};
+
